@@ -15,8 +15,18 @@ export class InventoryService {
   private inventory: Map<string, InventoryItem> = new Map();
 
   addSKU(request: AddSKURequest): InventoryItem {
-    if (this.skus.has(request.skuId)) {
-      throw new Error(`SKU with id ${request.skuId} already exists`);
+    if (!request.skuId || request.skuId.trim() === '') {
+      throw new Error('SKU ID cannot be empty or whitespace');
+    }
+
+    if (!request.name || request.name.trim() === '') {
+      throw new Error('SKU name cannot be empty or whitespace');
+    }
+
+    const trimmedSkuId = request.skuId.trim();
+
+    if (this.skus.has(trimmedSkuId)) {
+      throw new Error(`SKU with id ${trimmedSkuId} already exists`);
     }
 
     if (request.reorderThreshold < 0) {
@@ -31,18 +41,19 @@ export class InventoryService {
       throw new Error('Initial quantity cannot be negative');
     }
 
+    const trimmedName = request.name.trim();
     const now = new Date();
     const sku: SKU = {
-      id: request.skuId,
-      name: request.name,
+      id: trimmedSkuId,
+      name: trimmedName,
       description: request.description,
       createdAt: now,
       updatedAt: now
     };
 
     const inventoryItem: InventoryItem = {
-      skuId: request.skuId,
-      skuName: request.name,
+      skuId: trimmedSkuId,
+      skuName: trimmedName,
       quantity: request.initialQuantity,
       reorderThreshold: request.reorderThreshold,
       reorderQuantity: request.reorderQuantity,
@@ -50,8 +61,8 @@ export class InventoryService {
       lastUpdated: now
     };
 
-    this.skus.set(request.skuId, sku);
-    this.inventory.set(request.skuId, inventoryItem);
+    this.skus.set(trimmedSkuId, sku);
+    this.inventory.set(trimmedSkuId, inventoryItem);
 
     return inventoryItem;
   }

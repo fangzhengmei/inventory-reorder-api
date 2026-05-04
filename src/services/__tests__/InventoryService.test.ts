@@ -96,6 +96,121 @@ describe('InventoryService', () => {
       expect(() => service.addSKU(request1)).toThrow('Reorder quantity must be greater than zero');
       expect(() => service.addSKU(request2)).toThrow('Reorder quantity must be greater than zero');
     });
+
+    it('should throw error when skuId is empty', () => {
+      const request: AddSKURequest = {
+        skuId: '',
+        name: 'Test Product',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      expect(() => service.addSKU(request)).toThrow('SKU ID cannot be empty or whitespace');
+    });
+
+    it('should throw error when skuId is only whitespace', () => {
+      const request1: AddSKURequest = {
+        skuId: '   ',
+        name: 'Test Product',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      const request2: AddSKURequest = {
+        skuId: '\t\n',
+        name: 'Test Product',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      expect(() => service.addSKU(request1)).toThrow('SKU ID cannot be empty or whitespace');
+      expect(() => service.addSKU(request2)).toThrow('SKU ID cannot be empty or whitespace');
+    });
+
+    it('should throw error when name is empty', () => {
+      const request: AddSKURequest = {
+        skuId: 'SKU001',
+        name: '',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      expect(() => service.addSKU(request)).toThrow('SKU name cannot be empty or whitespace');
+    });
+
+    it('should throw error when name is only whitespace', () => {
+      const request1: AddSKURequest = {
+        skuId: 'SKU001',
+        name: '   ',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      const request2: AddSKURequest = {
+        skuId: 'SKU002',
+        name: '\t\n\r',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      expect(() => service.addSKU(request1)).toThrow('SKU name cannot be empty or whitespace');
+      expect(() => service.addSKU(request2)).toThrow('SKU name cannot be empty or whitespace');
+    });
+
+    it('should trim leading and trailing whitespace from skuId', () => {
+      const request: AddSKURequest = {
+        skuId: '  SKU001  ',
+        name: 'Test Product',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      const result = service.addSKU(request);
+
+      expect(result.skuId).toBe('SKU001');
+      expect(service.getSKU('SKU001')).toBeDefined();
+    });
+
+    it('should trim leading and trailing whitespace from name', () => {
+      const request: AddSKURequest = {
+        skuId: 'SKU001',
+        name: '  Test Product  ',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      };
+
+      const result = service.addSKU(request);
+
+      expect(result.skuName).toBe('Test Product');
+    });
+
+    it('should not allow duplicate skuId after trimming', () => {
+      service.addSKU({
+        skuId: 'SKU001',
+        name: 'Original Product',
+        initialQuantity: 100,
+        reorderThreshold: 20,
+        reorderQuantity: 50
+      });
+
+      const request: AddSKURequest = {
+        skuId: '  SKU001  ',
+        name: 'Duplicate Product',
+        initialQuantity: 50,
+        reorderThreshold: 10,
+        reorderQuantity: 25
+      };
+
+      expect(() => service.addSKU(request)).toThrow('SKU with id SKU001 already exists');
+    });
   });
 
   describe('updateInventory', () => {
